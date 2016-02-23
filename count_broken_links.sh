@@ -41,15 +41,17 @@ esac
 shift # past argument or value
 done
 
-wget --spider -r -nd -nv -H -l 1 --header='User-Agent: Mozilla/5.0' -w $PAUSE -o /tmp/count_links http://$HOSTNAME/
+filename="/tmp/count_broken_links-"$HOSTNAME
 
-grep "Found no broken links." /tmp/count_links
+wget --spider -r -nd -nv --reject-regex "\?" --header='User-Agent: Mozilla/5.0' -o $filename http://$HOSTNAME/
+
+grep "Found no broken links." $filename
 if [ $? -eq 0 ] ; then
   echo "No broken links found"
   exit $STATE_OK
 fi
 
-count=$(grep -P '\d+ (?=broken)' -o /tmp/count_links)
+count=$(grep -P '\d+ (?=broken)' -o $filename)
 
 if [ $WARNING -gt $count ] ; then
   echo "Only" $count "broken links, acceptable."
