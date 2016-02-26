@@ -1,7 +1,7 @@
 # from https://www.digitalocean.com/community/tutorials/how-to-find-broken-links-on-your-website-using-wget-on-debian-7
 #
-# We output the results to /tmp/count_links, then grep the
-# results to see if we passed or failed.
+# We output the results to count_broken_links-$HOSTNAME, then grep the
+# results for our number of broken links.
 #!/bin/bash
 
 # @todo Load these from an include file.
@@ -11,24 +11,17 @@ STATE_CRITICAL=2
 STATE_UNKNOWN=3
 STATE_DEPENDENT=4
 
+# Set some defaults
+WARNING=1
+CRITICAL=2
 
-# Some arguments don't have a corresponding value to go with it such
-# as in the --default example).
 # note: if this is set to > 0 the /etc/hosts part is not recognized (may be a bug)
-
 while [[ $# > 1 ]]
 do
 key="$1"
 
 case $key in
-    -h|--hostname)
-    HOSTNAME="$2"
-    shift # past argument
-    ;;
-    -p|--pause)
-    PAUSE="$2"
-    shift # past argument
-    ;;
+# Nagios arguments.
     -w|--warning)
     WARNING="$2"
     shift # past argument
@@ -37,13 +30,41 @@ case $key in
     CRITICAL="$2"
     shift # past argument
     ;;
+# wget arguments.
+    -H|--hostname)
+    HOSTNAME="$2"
+    shift # past argument
+    ;;
+    -p|--wait)
+    WAIT="--wait=$2"
+    shift # past argument
+    ;;
+    -R|--reject)
+    REJLIST="--reject $2"
+    shift # past argument
+    ;;
+    -A|--acclist)
+    ACCLIST="--accept $2"
+    shift # past argument
+    ;;
+    -l|--level)
+    LEVEL="-l $2"
+    shift # past argument
+    ;;
+    --path)
+    URLPATH="$2"
+    shift # past argument
+    ;;
+    *)
+    echo "I do not understand your $1 argument"
+    ;;
 esac
 shift # past argument or value
 done
 
 filename="/tmp/count_broken_links-"$HOSTNAME
 
-wget --spider -r -nd -nv --reject-regex "\?" --header='User-Agent: Mozilla/5.0' -o $filename http://$HOSTNAME/
+wget --spider -r -nd -nv $WAIT $REJLIST $ACCLIST $LEVEL $IMAGES --header='User-Agent: Mozilla/5.0' -o $filename http://$HOSTNAME/$URLPATH
 
 grep "Found no broken links." $filename
 if [ $? -eq 0 ] ; then
@@ -59,7 +80,7 @@ if [ $WARNING -gt $count ] ; then
 fi
 if [ $CRITICAL -gt $count ] ; then
   echo $count "broken links, exceeds warning threshold."
-  exit $STATE_WARNING 
+  exit $STATE_WARNING
 fi
 if [ $CRITICAL -lt $count ] ; then
   echo $count "broken links, exceeds Critical threshold."
