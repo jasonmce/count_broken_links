@@ -4,6 +4,7 @@
 # results for our number of broken links.
 #!/bin/bash
 
+# @todo make sure wget 1.14+ is installed
 # @todo Load these from an include file.
 STATE_OK=0
 STATE_WARNING=1
