@@ -70,7 +70,7 @@ filename="/tmp/count_broken_links-"$HOSTNAME
 rm ${filename}
 rm ${filename}.short
 
-wget --spider --recursive --no-directories --no-verbose --debug --reject-regex "\?" $WAIT $REJLIST $ACCLIST $LEVEL $IMAGES -o ${filename} --header='User-Agent: Mozilla/5.0' http://$HOSTNAME/$URLPATH
+wget --spider --recursive --no-directories --no-verbose --debug $WAIT $REJLIST $ACCLIST $LEVEL $IMAGES -o ${filename} --header='User-Agent: Mozilla/5.0' http://$HOSTNAME/$URLPATH
 
 grep "Found no broken links." $filename
 if [[ $? -eq 0 ]] ; then
