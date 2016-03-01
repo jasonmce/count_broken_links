@@ -72,25 +72,25 @@ rm ${filename}.short
 wget --spider --recursive --no-directories --no-verbose --debug --reject-regex "\?" $WAIT $REJLIST $ACCLIST $LEVEL $IMAGES -o ${filename} --header='User-Agent: Mozilla/5.0' http://$HOSTNAME/$URLPATH
 
 grep "Found no broken links." $filename
-if [ $? -eq 0 ] ; then
+if [[ $? -eq 0 ]] ; then
   echo "No broken links found"
   exit $STATE_OK
 fi
 
 # Save a short list of referrer -> broken link pairs.
-cat $filename | sed -n "/Referer\|^http\|broken/p" | sed -n -e "/broken/{x;p;d}; x" > ${filename}.short
+cat $filename | sed -n "/Referer\|^http\|broken/p" | grep -B 2 "broken" > ${filename}.short
 
 count=$(grep -P '\d+ (?=broken)' -o $filename)
 
-if [ $WARNING -gt $count ] ; then
+if [[ $WARNING -gt $count ]] ; then
   echo "Only" $count "broken links, acceptable."
   exit $STATE_OK
 fi
-if [ $CRITICAL -gt $count ] ; then
+if [[ $CRITICAL -gt $count ]] ; then
   echo $count "broken links, exceeds warning threshold."
   exit $STATE_WARNING
 fi
-if [ $CRITICAL -lt $count ] ; then
+if [[ $CRITICAL -lt $count ]] ; then
   echo $count "broken links, exceeds Critical threshold."
   exit $STATE_CRITICAL
 fi
